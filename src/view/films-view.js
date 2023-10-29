@@ -1,12 +1,11 @@
-import { RenderPosition, render } from '../framework/render.js';
 import AbstractView from '../framework/view/abstract-view.js';
-import FilmsListView from './films-list-view.js';
 
 function createFilmsTemplate() {
   return (
     `<section class="films">
 
 
+    <!--
     <section class="films-list films-list--extra">
       <h2 class="films-list__title">Top rated</h2>
 
@@ -99,25 +98,13 @@ function createFilmsTemplate() {
           </div>
         </article>
       </div>
-    </section>
+    </section> -->
   </section>`
   );
 }
 
 export default class FilmsView extends AbstractView {
-  #filmsList = null;
-
-  constructor({ films }) {
-    super();
-    this.#filmsList = new FilmsListView({ films });
-  }
-
   get template() {
     return createFilmsTemplate();
-  }
-
-  init() {
-    this.#filmsList.init();
-    render(this.#filmsList, this.element, RenderPosition.AFTERBEGIN);
   }
 }
