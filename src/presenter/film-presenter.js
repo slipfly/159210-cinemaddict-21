@@ -6,9 +6,11 @@ export default class FilmPresenter {
   #filmContainerComponent = null;
   #filmCardComponent = null;
   #film = null;
+  #onDetailsClick = null;
 
-  constructor({ container }) {
+  constructor({ container, onDetailsClick }) {
     this.#filmContainerComponent = container;
+    this.#onDetailsClick = onDetailsClick;
   }
 
   init(film) {
@@ -16,7 +18,8 @@ export default class FilmPresenter {
 
     this.#film = film;
     this.#filmCardComponent = new FilmCardView({
-      film: this.#film
+      film: this.#film,
+      onDetailsClick: this.#onDetailsClick
     });
 
     if (prevFilmCardComponent === null) {
