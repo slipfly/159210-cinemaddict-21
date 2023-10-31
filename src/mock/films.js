@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid';
+import { Comments } from './comments';
 
 function generateRandomDate() {
   const from = new Date(1950, 0, 1);
@@ -9,13 +10,31 @@ function generateRandomDate() {
   );
 }
 
+const getRandomInteger = (a, b) => {
+  const lower = Math.ceil(Math.min(a, b));
+  const upper = Math.floor(Math.max(a, b));
+  const result = Math.random() * (upper - lower + 1) + lower;
+  return Math.floor(result);
+};
+
+function getsomeComments() {
+  const count = Math.floor(Math.random() * 7);
+  const commentsList = [];
+  while (commentsList.length < count) {
+    let newComment = Comments[getRandomInteger(0, Comments.length - 1)].id;
+    if (commentsList.includes(newComment)) {
+      newComment = Comments[getRandomInteger(0, Comments.length - 1)].id;
+    } else {
+      commentsList.push(newComment);
+    }
+  }
+  return commentsList;
+}
+
 const FILMS = [
   {
     id: nanoid(),
-    comments: [
-      'Следует отметить, что сплочённость команды профессионалов, в своём классическом представлении, допускает внедрение экономической целесообразности принимаемых решений.',
-      'Высокий уровень вовлечения представителей целевой аудитории является четким доказательством простого факта'
-    ],
+    comments: getsomeComments(),
     filmInfo: {
       title: 'The Dance of Life',
       alternativeTitle: '',
@@ -49,10 +68,7 @@ const FILMS = [
   },
   {
     id: nanoid(),
-    comments: [
-      'новая модель организационной деятельности требует от нас анализа первоочередных требований',
-      'Идейные соображения высшего порядка, а также синтетическое тестирование способствует повышению качества экономической целесообразности принимаемых решений.'
-    ],
+    comments: getsomeComments(),
     filmInfo: {
       title: 'Sagebrush Trail',
       alternativeTitle: '',
@@ -89,11 +105,7 @@ const FILMS = [
   },
   {
     id: nanoid(),
-    comments: [
-      'Однозначно, стремящиеся вытеснить традиционное производство, нанотехнологии, превозмогая сложившуюся непростую экономическую ситуацию',
-      'функционально разнесены на независимые элементы',
-      'И нет сомнений, что ключевые особенности структуры проекта, превозмогая сложившуюся непростую экономическую ситуацию'
-    ],
+    comments: getsomeComments(),
     filmInfo: {
       title: 'The Man with the Golden Arm',
       alternativeTitle: '',
@@ -126,11 +138,7 @@ const FILMS = [
   },
   {
     id: nanoid(),
-    comments: [
-      'С другой стороны, постоянный количественный рост и сфера нашей активности прекрасно подходит для реализации вывода текущих активов.',
-      'С учётом сложившейся международной обстановки, семантический разбор внешних противодействий создаёт предпосылки для экономической целесообразности принимаемых решений.',
-      'А также тщательные исследования конкурентов'
-    ],
+    comments: getsomeComments(),
     filmInfo: {
       title: 'Santa Claus Conquers the Martians',
       alternativeTitle: '',
@@ -165,12 +173,7 @@ const FILMS = [
   },
   {
     id: nanoid(),
-    comments: [
-      'независимые способы реализации новых принципов формирования материально-технической и кадровой базы',
-      'убеждённость некоторых оппонентов требует от нас анализа приоретизации разума над эмоциями',
-      'семантический разбор внешних противодействий создаёт предпосылки для экономической целесообразности принимаемых решений',
-      'типа политической культуры'
-    ],
+    comments: getsomeComments(),
     filmInfo: {
       title: 'Popeye the Sailor Meets Sindbad the Sailor',
       alternativeTitle: '',
