@@ -1,4 +1,8 @@
-const DATE_FORMAT = 'YYYY';
+const DATE_FORMATS = {
+  MAIN: 'YYYY',
+  POPUP: 'DD MMM YYYY',
+  COMMENT: 'YYYY/MM/DD HH:mm'
+};
 
 const Time = {
   HOURS: 24,
@@ -6,6 +10,6 @@ const Time = {
 };
 
 export {
-  DATE_FORMAT,
+  DATE_FORMATS,
   Time
 };
