@@ -1,4 +1,4 @@
-import { render } from '../framework/render.js';
+import { render,remove } from '../framework/render.js';
 import FilmsView from '../view/films-view.js';
 import HeaderProfileView from '../view/header-profile-view.js';
 import MainNavigationView from '../view/main-navigation-view.js';
@@ -8,6 +8,8 @@ import FilmsCollectionView from '../view/films-collection-view.js';
 import MoreButtonView from '../view/more-button-view.js';
 import FilmsListView from '../view/films-list-view.js';
 import PopupView from '../view/popup.js';
+import { FILM_QUANT } from '../const.js';
+import EmptyListView from '../view/empty-list-view.js';
 
 export default class PagePresenter {
   #header = null;
@@ -15,6 +17,7 @@ export default class PagePresenter {
   #body = null;
   #filmsModel = null;
   #commentsModel = null;
+  #moreBtn = null;
 
   #headerProfileView = new HeaderProfileView();
   #mainNavigationView = new MainNavigationView();
@@ -22,8 +25,11 @@ export default class PagePresenter {
   #filmsView = new FilmsView();
   #filmPresenters = new Map();
   #filmsCollection = new FilmsCollectionView();
-  #moreBtn = new MoreButtonView();
   #filmsList = new FilmsListView();
+  #emptyListView = new EmptyListView();
+
+  #pageFilms = [];
+  #renderedFilmsCounter = FILM_QUANT;
 
   constructor({ header, container, body, filmsModel, commentsModel }) {
     this.#header = header;
@@ -38,6 +44,8 @@ export default class PagePresenter {
   }
 
   init() {
+    this.#pageFilms = [...this.films];
+
     this.#renderPage();
   }
 
@@ -47,9 +55,20 @@ export default class PagePresenter {
     this.#renderSortPanel();
     this.#renderFilmsContainer();
 
-    this.films.forEach((film) => this.#renderFilm(film));
+    for (let i = 0; i < Math.min(this.#pageFilms.length, FILM_QUANT); i++) {
+      this.#renderFilm(this.#pageFilms[i]);
+    }
 
-    this.#renderMoreBtn();
+    if (this.#pageFilms.length > FILM_QUANT) {
+      this.#moreBtn = new MoreButtonView({
+        onClick: this.#onMoreButtonClick
+      });
+      render(this.#moreBtn, this.#filmsList.element);
+    }
+
+    if (this.#pageFilms.length === 0) {
+      render(this.#emptyListView, this.#filmsView.element);
+    }
   }
 
   #renderFilm(film) {
@@ -81,14 +100,6 @@ export default class PagePresenter {
     render(this.#sortView, this.#container);
   }
 
-  #renderMoreBtn() {
-    render(this.#moreBtn, this.#filmsList.element);
-  }
-
-  #renderPopup(popup) {
-    render(popup, this.#body);
-  }
-
   #onFilmClick = (evt) => {
     if (evt.nodeName !== 'IMG') {
       return;
@@ -105,6 +116,18 @@ export default class PagePresenter {
       commentsData: this.#commentsModel.comments
     });
 
+    this.#body.classList.add('hide-overflow');
+
     render(popup, this.#body);
+  };
+
+  #onMoreButtonClick = () => {
+    this.#pageFilms
+      .slice(this.#renderedFilmsCounter, this.#renderedFilmsCounter + FILM_QUANT)
+      .forEach((film) => this.#renderFilm(film));
+    this.#renderedFilmsCounter += FILM_QUANT;
+    if (this.#renderedFilmsCounter >= this.#pageFilms.length) {
+      remove(this.#moreBtn);
+    }
   };
 }

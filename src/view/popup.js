@@ -166,6 +166,8 @@ export default class PopupView extends AbstractView {
 
     this.element.querySelector('.film-details__close-btn')
       .addEventListener('click', this.#closeClickHandler);
+
+    document.addEventListener('keydown', this.#escKeyDownHandler);
   }
 
   get template() {
@@ -182,6 +184,19 @@ export default class PopupView extends AbstractView {
     }
 
     evt.preventDefault();
+
+    this.element.parentNode.classList.remove('hide-overflow');
+
     this.destroy();
+  };
+
+  #escKeyDownHandler = (evt) => {
+    if (evt.key === 'Escape') {
+      evt.preventDefault();
+
+      this.element.parentNode.classList.remove('hide-overflow');
+
+      this.destroy();
+    }
   };
 }

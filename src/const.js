@@ -9,7 +9,10 @@ const Time = {
   MINUTES: 60
 };
 
+const FILM_QUANT = 5;
+
 export {
   DATE_FORMATS,
-  Time
+  Time,
+  FILM_QUANT
 };
