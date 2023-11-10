@@ -1,5 +1,5 @@
 import CommentsModel from './model/comments-model.js';
-import FilmsModel from './model/fillm-model.js';
+import FilmsModel from './model/fillms-model.js';
 import PagePresenter from './presenter/page-presenter.js';
 
 const header = document.querySelector('header');
