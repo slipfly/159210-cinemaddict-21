@@ -47,15 +47,11 @@ export default class FilterPresenter {
     const filters = this.filters;
     const prevFilterComponent = this.#filterComponent;
 
-    console.log(this.#filterComponent);
-
     this.#filterComponent = new FilterView({
       filters,
       currentFilter: this.#filterModel.filter,
       onFilterTypeChange: this.#onFilterTypeChange
     });
-
-    console.log(this.#filterComponent);
 
     if (prevFilterComponent === null) {
       render(this.#filterComponent, this.#filterContainer);

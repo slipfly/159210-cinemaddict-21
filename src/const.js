@@ -24,6 +24,12 @@ const FilterParameter = {
   FAVORITES: 'favorite'
 };
 
+const ControlButton = {
+  WATCHLIST: 'watchlist',
+  HISTORY: 'watched',
+  FAVORITES: 'favorite'
+};
+
 const DEFAULT_FILTER = 'All movies';
 
 const UpdateType = {
@@ -33,6 +39,24 @@ const UpdateType = {
   INIT: 'INIT'
 };
 
+const SortType = {
+  DEFAULT: 'default',
+  DATE: 'date',
+  RATING: 'rating'
+};
+
+const UserAction = {
+  UPDATE_FILM: 'UPDATE_FILM',
+  ADD_FILM: 'ADD_FILM',
+  DELETE_FILM: 'DELETE_FILM',
+};
+
+const Mode = {
+  DEFAULT: 'DEFAULT',
+  EDITING: 'EDITING',
+  CREATING: 'CREATING',
+};
+
 export {
   DATE_FORMATS,
   Time,
@@ -40,5 +64,9 @@ export {
   FilterType,
   FilterParameter,
   DEFAULT_FILTER,
-  UpdateType
+  UpdateType,
+  SortType,
+  ControlButton,
+  UserAction,
+  Mode
 };

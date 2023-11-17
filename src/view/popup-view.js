@@ -158,11 +158,13 @@ function createPopupTemplate({ comments, filmInfo, userDetails }, commentsData) 
 export default class PopupView extends AbstractView {
   #film = null;
   #commentsData = null;
+  #onPopupClose = null;
 
-  constructor({film, commentsData}){
+  constructor({film, commentsData, onPopupClose}){
     super();
     this.#film = film;
     this.#commentsData = commentsData;
+    this.#onPopupClose = onPopupClose;
 
     this.element.querySelector('.film-details__close-btn')
       .addEventListener('click', this.#closeClickHandler);
@@ -175,6 +177,7 @@ export default class PopupView extends AbstractView {
   }
 
   destroy() {
+    this.#onPopupClose();
     remove(this);
   }
 

@@ -9,4 +9,8 @@ function humanizeTime(time) {
   return `${hours} ${minutes}m`;
 }
 
-export { humanizeTime };
+function updateItem(items, update) {
+  return items.map((item) => item.id === update.id ? update : item);
+}
+
+export { humanizeTime, updateItem };

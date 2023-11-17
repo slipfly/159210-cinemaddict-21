@@ -1,5 +1,5 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { DATE_FORMATS } from '../const.js';
+import { ControlButton, DATE_FORMATS } from '../const.js';
 import dayjs from 'dayjs';
 import { humanizeTime } from '../utils/common.js';
 
@@ -30,13 +30,21 @@ function createFilmCardTemplate({ comments, filmInfo, userDetails }) {
 export default class FilmCardView extends AbstractView {
   #film = null;
   #onDetailsClick = null;
+  #onWatchlistClick = null;
+  #onWatchedClick = null;
+  #onFavoriteClick = null;
 
-  constructor({ film, onDetailsClick }) {
+  constructor({ film, onDetailsClick, onWatchlistClick, onWatchedClick, onFavoriteClick }) {
     super();
     this.#film = film;
     this.#onDetailsClick = onDetailsClick;
+    this.#onWatchlistClick = onWatchlistClick;
+    this.#onWatchedClick = onWatchedClick;
+    this.#onFavoriteClick = onFavoriteClick;
 
     this.element.addEventListener('click', this.#detailsClickHandler);
+    this.element.querySelector('.film-card__controls')
+      .addEventListener('click', this.#controlsClickHandler);
   }
 
   get template() {
@@ -46,5 +54,24 @@ export default class FilmCardView extends AbstractView {
   #detailsClickHandler = (evt) => {
     evt.preventDefault();
     this.#onDetailsClick?.(evt.target);
+  };
+
+  #controlsClickHandler = (evt) => {
+    if (evt.target.nodeName !== 'BUTTON') {
+      return;
+    }
+    evt.preventDefault();
+    const currentControl = evt.target.textContent.split(' ').pop();
+    switch (currentControl) {
+      case ControlButton.WATCHLIST:
+        this.#onWatchlistClick();
+        break;
+      case ControlButton.HISTORY:
+        this.#onWatchedClick();
+        break;
+      case ControlButton.FAVORITES:
+        this.#onFavoriteClick();
+        break;
+    }
   };
 }

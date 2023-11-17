@@ -1,17 +1,15 @@
 import { render,remove, RenderPosition } from '../framework/render.js';
 import FilmsView from '../view/films-view.js';
 import HeaderProfileView from '../view/header-profile-view.js';
-import FilterModel from '../model/filter-model.js';
 import SortView from '../view/sort-view.js';
 import FilmPresenter from './film-presenter.js';
 import FilmsCollectionView from '../view/films-collection-view.js';
 import MoreButtonView from '../view/more-button-view.js';
 import FilmsListView from '../view/films-list-view.js';
 import PopupView from '../view/popup-view.js';
-import { FILM_QUANT, FilterType, UpdateType } from '../const.js';
+import { FILM_QUANT, FilterType, SortType, UpdateType, UserAction } from '../const.js';
 import EmptyListView from '../view/empty-list-view.js';
-import FilterPresenter from './filter-presenter.js';
-import { filter } from '../utils/filter.js';
+import { sortByDate, sortByRating } from '../utils/films.js';
 
 export default class PagePresenter {
   #header = null;
@@ -20,62 +18,52 @@ export default class PagePresenter {
   #filmsModel = null;
   #commentsModel = null;
   #moreBtn = null;
-  #filterPresenter = null;
+  #filterModel = null;
+  #sortView = null;
+  #popup = null;
 
   #headerProfileView = new HeaderProfileView();
-  #sortView = new SortView();
   #filmsView = new FilmsView();
   #filmPresenters = new Map();
   #filmsCollection = new FilmsCollectionView();
   #filmsList = new FilmsListView();
   #emptyListView = new EmptyListView();
-  #filterModel = new FilterModel();
   #filterType = FilterType.ALL;
+  #currentSortType = SortType.DEFAULT;
+  #isPopup = false;
 
   #pageFilms = [];
+  #sourcedPageFilms = [];
   #renderedFilmsCounter = FILM_QUANT;
 
-  constructor({ header, container, body, filmsModel, commentsModel }) {
+  constructor({ header, container, body, filmsModel, commentsModel, filterModel }) {
     this.#header = header;
     this.#container = container;
     this.#body = body;
     this.#filmsModel = filmsModel;
     this.#commentsModel = commentsModel;
+    this.#filterModel = filterModel;
 
+    this.#filmsModel.addObserver(this.#onModelEvent);
     this.#filterModel.addObserver(this.#onModelEvent);
   }
 
-  get films() {
-    this.#filterType = this.#filterModel.filter;
-    const films = this.#filmsModel.films;
-    const filteredFilms = filter[this.#filterType](films);
-
-    return filteredFilms;
-  }
-
   init() {
-    this.#pageFilms = [...this.films];
+    this.#pageFilms = [...this.#filmsModel.films];
+    this.#sourcedPageFilms = [...this.#filmsModel.films];
 
     this.#renderPage();
   }
 
   #renderPage() {
     this.#renderHeaderProfile();
-    this.#filterPresenter = new FilterPresenter({
-      filterContainer: this.#container,
-      filterModel: this.#filterModel,
-      filmsModel: this.#filmsModel
-    });
-    this.#filterPresenter.init();
 
     if (this.#pageFilms.length > 0) {
       this.#renderSortPanel();
       this.#renderFilmsContainer();
       this.#renderFilmsList();
 
-      for (let i = 0; i < Math.min(this.#pageFilms.length, FILM_QUANT); i++) {
-        this.#renderFilm(this.#pageFilms[i]);
-      }
+      this.#renderFilms(0, Math.min(this.#pageFilms.length, FILM_QUANT));
     } else {
       this.#renderFilmsContainer();
       render(this.#emptyListView, this.#filmsView.element, RenderPosition.AFTERBEGIN);
@@ -89,15 +77,40 @@ export default class PagePresenter {
     }
   }
 
+  #sortFilms(sortType) {
+    switch (sortType) {
+      case SortType.DATE:
+        this.#pageFilms.sort(sortByDate);
+        break;
+
+      case SortType.RATING:
+        this.#pageFilms.sort(sortByRating);
+        break;
+
+      case SortType.DEFAULT:
+      default:
+        this.#pageFilms = [...this.#sourcedPageFilms];
+    }
+
+    this.#currentSortType = sortType;
+  }
+
   #renderFilm(film) {
     const filmPresenter = new FilmPresenter({
       container: this.#filmsCollection.element,
-      onDetailsClick: this.#onFilmClick
+      onDetailsClick: this.#onFilmClick,
+      onFilmChange: this.#onViewAction
     });
 
     filmPresenter.init(film);
 
     this.#filmPresenters.set(film.id, filmPresenter);
+  }
+
+  #renderFilms(from, to) {
+    this.#pageFilms
+      .slice(from, to)
+      .forEach((film) => this.#renderFilm(film));
   }
 
   #renderFilmsContainer() {
@@ -114,6 +127,11 @@ export default class PagePresenter {
   }
 
   #renderSortPanel() {
+    this.#sortView = new SortView({
+      currentSortType: this.#currentSortType,
+      onSortTypeChange: this.#onSortTypeChange
+    });
+
     render(this.#sortView, this.#container);
   }
 
@@ -122,20 +140,32 @@ export default class PagePresenter {
       return;
     }
 
+    if (this.#isPopup === true) {
+      this.#popup.destroy();
+      this.#popup = null;
+    }
+
     const currentTitle = evt.parentNode.children[0].innerText;
 
-    const currentFilm = this.films.find((film) =>
+    const currentFilm = this.#pageFilms.find((film) =>
       film.filmInfo.title === currentTitle);
 
 
-    const popup = new PopupView({
+    this.#popup = new PopupView({
       film: currentFilm,
-      commentsData: this.#commentsModel.comments
+      commentsData: this.#commentsModel.comments,
+      onPopupClose: this.#onPopupClose
     });
+
+    this.#isPopup = true;
 
     this.#body.classList.add('hide-overflow');
 
-    render(popup, this.#body);
+    render(this.#popup, this.#body);
+  };
+
+  #onPopupClose = () => {
+    this.#isPopup = false;
   };
 
   #onMoreButtonClick = () => {
@@ -150,13 +180,18 @@ export default class PagePresenter {
 
   #clearPage() {
 
+    this.#filmPresenters.forEach((presenter) => presenter.destroy());
+    this.#filmPresenters.clear();
+
     remove(this.#headerProfileView);
-    remove(this.#filmsView);
+    remove(this.#filmsList);
     remove(this.#sortView);
     remove(this.#moreBtn);
   }
 
   #onModelEvent = (updateType, data) => {
+    this.#pageFilms = [...this.#filmsModel.films];
+    this.#sourcedPageFilms = [...this.#filmsModel.films];
     switch (updateType) {
       case UpdateType.PATCH:
         this.#filmPresenters.get(data.id).init(data);
@@ -178,5 +213,34 @@ export default class PagePresenter {
         this.#renderPage();
         break;
     }
+  };
+
+  #onViewAction = (actionType, updateType, update) => {
+    switch (actionType) {
+      case UserAction.UPDATE_FILM:
+        this.#filmPresenters.get(update.id).setSaving();
+        this.#filmsModel.updateFilm(updateType, update);
+        break;
+
+      case UserAction.ADD_FILM:
+        this.#filmsModel.addFilm(updateType, update);
+        break;
+
+      case UserAction.DELETE_FILM:
+        this.#filmPresenters.get(update.id).setDeleting();
+        this.#filmsModel.deleteFilm(updateType, update);
+        break;
+    }
+  };
+
+  #onSortTypeChange = (sortType) => {
+    if (this.#currentSortType === sortType) {
+      return;
+    }
+
+    this.#sortFilms(sortType);
+    this.#clearPage();
+    this.#renderPage();
+    this.#renderedFilmsCounter = FILM_QUANT;
   };
 }
