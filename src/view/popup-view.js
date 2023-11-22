@@ -1,6 +1,6 @@
-import AbstractView from '../framework/view/abstract-view.js';
+import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { convertArrayToLine } from '../utils/popup.js';
-import { DATE_FORMATS } from '../const.js';
+import { DATE_FORMATS, EMOJI_ATTRIBUTE, Emoji } from '../const.js';
 import dayjs from 'dayjs';
 import { humanizeTime } from '../utils/common.js';
 import { remove } from '../framework/render.js';
@@ -26,6 +26,18 @@ function getComments(comments, commentsData) {
             </div>
           </li>`);
   }).join('');
+}
+
+function getEmojiList() {
+  const emojiList = Object.values(Emoji)
+    .map((emoji) => (`<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emoji}" value="${emoji}">
+            <label class="film-details__emoji-label" for="emoji-${emoji}">
+              <img src="./images/emoji/${emoji}.png" width="30" height="30" alt="emoji-${emoji}">
+            </label>`))
+    .join('');
+  return (`<div class="film-details__emoji-list">
+            ${emojiList}
+          </div>`);
 }
 
 function createPopupTemplate({ comments, filmInfo, userDetails }, commentsData) {
@@ -126,27 +138,7 @@ function createPopupTemplate({ comments, filmInfo, userDetails }, commentsData) 
             <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
           </label>
 
-          <div class="film-details__emoji-list">
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-smile" value="smile">
-            <label class="film-details__emoji-label" for="emoji-smile">
-              <img src="./images/emoji/smile.png" width="30" height="30" alt="emoji">
-            </label>
-
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-sleeping" value="sleeping">
-            <label class="film-details__emoji-label" for="emoji-sleeping">
-              <img src="./images/emoji/sleeping.png" width="30" height="30" alt="emoji">
-            </label>
-
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-puke" value="puke">
-            <label class="film-details__emoji-label" for="emoji-puke">
-              <img src="./images/emoji/puke.png" width="30" height="30" alt="emoji">
-            </label>
-
-            <input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-angry" value="angry">
-            <label class="film-details__emoji-label" for="emoji-angry">
-              <img src="./images/emoji/angry.png" width="30" height="30" alt="emoji">
-            </label>
-          </div>
+          ${getEmojiList()}
         </form>
       </section>
     </div>
@@ -155,7 +147,7 @@ function createPopupTemplate({ comments, filmInfo, userDetails }, commentsData) 
   );
 }
 
-export default class PopupView extends AbstractView {
+export default class PopupView extends AbstractStatefulView {
   #film = null;
   #commentsData = null;
   #onPopupClose = null;
@@ -183,11 +175,19 @@ export default class PopupView extends AbstractView {
       .addEventListener('click', this.#controlsClickHandler);
 
     document.addEventListener('keydown', this.#escKeyDownHandler);
+
+    this.element.querySelector('.film-details__emoji-list')
+      .addEventListener('click', this.#emojiClickHandler);
   }
 
   destroy() {
     this.#onPopupClose();
     remove(this);
+  }
+
+  clearSessionStorage() {
+    window.sessionStorage.removeItem('popupScroll');
+    window.sessionStorage.removeItem('popupAvatar');
   }
 
   #closeClickHandler = (evt) => {
@@ -200,6 +200,7 @@ export default class PopupView extends AbstractView {
     this.element.parentNode.classList.remove('hide-overflow');
 
     this.destroy();
+    this.clearSessionStorage();
   };
 
   #escKeyDownHandler = (evt) => {
@@ -209,6 +210,7 @@ export default class PopupView extends AbstractView {
       this.element.parentNode.classList.remove('hide-overflow');
 
       this.destroy();
+      this.clearSessionStorage();
     }
   };
 
@@ -219,6 +221,30 @@ export default class PopupView extends AbstractView {
     evt.preventDefault();
 
     const currentControl = evt.target.id;
+    window.sessionStorage.setItem('popupScroll', this.element.scrollTop);
     this.#onControlClick(this.#film, currentControl);
+  };
+
+  #emojiClickHandler = (evt) => {
+    if (evt.target.nodeName !== 'IMG') {
+      return;
+    }
+
+    const avatar = this.element.querySelector('.film-details__add-emoji-label');
+    const image = evt.target.cloneNode(true);
+    image.setAttribute('width', EMOJI_ATTRIBUTE.width);
+    image.setAttribute('height', EMOJI_ATTRIBUTE.height);
+
+    avatar.innerHTML = '';
+    avatar.appendChild(image);
+
+    this.element.querySelectorAll('.film-details__emoji-item').forEach((item) => {
+      item.setAttribute('checked', false);
+      if (item.id === evt.target.parentNode.getAttribute('for')) {
+        item.setAttribute('checked', true);
+      }
+    });
+
+    window.sessionStorage.setItem('popupAvatar', avatar.innerHTML);
   };
 }

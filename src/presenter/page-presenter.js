@@ -152,6 +152,19 @@ export default class PagePresenter {
     this.#isPopup = true;
 
     render(this.#popup, this.#body);
+
+    if (window.sessionStorage.getItem('popupScroll') !== '' &&
+      window.sessionStorage.getItem('popupScroll') !== null &&
+      window.sessionStorage.getItem('popupScroll') !== undefined) {
+      this.#popup.element.scrollTop = window.sessionStorage.getItem('popupScroll');
+    }
+
+    if (window.sessionStorage.getItem('popupAvatar') !== '' &&
+      window.sessionStorage.getItem('popupAvatar') !== null &&
+      window.sessionStorage.getItem('popupAvatar') !== undefined) {
+      this.#popup.element.querySelector('.film-details__add-emoji-label')
+        .innerHTML = window.sessionStorage.getItem('popupAvatar');
+    }
   };
 
   #onFilmClick = (evt) => {

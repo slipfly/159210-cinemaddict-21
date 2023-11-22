@@ -57,6 +57,18 @@ const Mode = {
   CREATING: 'CREATING',
 };
 
+const Emoji = {
+  SMILE: 'smile',
+  SLEEPING: 'sleeping',
+  PUKE: 'puke',
+  ANGRY: 'angry'
+};
+
+const EMOJI_ATTRIBUTE = {
+  width: 55,
+  height: 55
+};
+
 export {
   DATE_FORMATS,
   Time,
@@ -68,5 +80,7 @@ export {
   SortType,
   ControlButton,
   UserAction,
-  Mode
+  Mode,
+  Emoji,
+  EMOJI_ATTRIBUTE
 };
