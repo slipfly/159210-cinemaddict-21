@@ -159,21 +159,30 @@ export default class PopupView extends AbstractView {
   #film = null;
   #commentsData = null;
   #onPopupClose = null;
+  #onControlClick = null;
 
-  constructor({film, commentsData, onPopupClose}){
+  constructor({ film, commentsData, onPopupClose, onControlClick }){
     super();
     this.#film = film;
     this.#commentsData = commentsData;
     this.#onPopupClose = onPopupClose;
+    this.#onControlClick = onControlClick;
 
-    this.element.querySelector('.film-details__close-btn')
-      .addEventListener('click', this.#closeClickHandler);
-
-    document.addEventListener('keydown', this.#escKeyDownHandler);
+    this._restoreHandlers();
   }
 
   get template() {
     return createPopupTemplate(this.#film, this.#commentsData);
+  }
+
+  _restoreHandlers() {
+    this.element.querySelector('.film-details__close-btn')
+      .addEventListener('click', this.#closeClickHandler);
+
+    this.element.querySelector('.film-details__controls')
+      .addEventListener('click', this.#controlsClickHandler);
+
+    document.addEventListener('keydown', this.#escKeyDownHandler);
   }
 
   destroy() {
@@ -201,5 +210,15 @@ export default class PopupView extends AbstractView {
 
       this.destroy();
     }
+  };
+
+  #controlsClickHandler = (evt) => {
+    if (evt.target.nodeName !== 'BUTTON') {
+      return;
+    }
+    evt.preventDefault();
+
+    const currentControl = evt.target.id;
+    this.#onControlClick(this.#film, currentControl);
   };
 }

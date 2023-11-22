@@ -7,7 +7,7 @@ import FilmsCollectionView from '../view/films-collection-view.js';
 import MoreButtonView from '../view/more-button-view.js';
 import FilmsListView from '../view/films-list-view.js';
 import PopupView from '../view/popup-view.js';
-import { FILM_QUANT, FilterType, SortType, UpdateType, UserAction } from '../const.js';
+import { ControlButton, FILM_QUANT, FilterParameter, FilterType, SortType, UpdateType, UserAction } from '../const.js';
 import EmptyListView from '../view/empty-list-view.js';
 import { sortByDate, sortByRating } from '../utils/films.js';
 
@@ -99,7 +99,8 @@ export default class PagePresenter {
     const filmPresenter = new FilmPresenter({
       container: this.#filmsCollection.element,
       onDetailsClick: this.#onFilmClick,
-      onFilmChange: this.#onViewAction
+      onFilmChange: this.#onViewAction,
+      onControlClick: this.#onControlClick
     });
 
     filmPresenter.init(film);
@@ -135,14 +136,27 @@ export default class PagePresenter {
     render(this.#sortView, this.#container);
   }
 
-  #onFilmClick = (evt) => {
-    if (evt.nodeName !== 'IMG') {
-      return;
-    }
-
+  #renderPopup = (film) => {
     if (this.#isPopup === true) {
       this.#popup.destroy();
       this.#popup = null;
+    }
+
+    this.#popup = new PopupView({
+      film,
+      commentsData: this.#commentsModel.comments,
+      onPopupClose: this.#onPopupClose,
+      onControlClick: this.#onControlClick
+    });
+
+    this.#isPopup = true;
+
+    render(this.#popup, this.#body);
+  };
+
+  #onFilmClick = (evt) => {
+    if (evt.nodeName !== 'IMG') {
+      return;
     }
 
     const currentTitle = evt.parentNode.children[0].innerText;
@@ -150,18 +164,11 @@ export default class PagePresenter {
     const currentFilm = this.#pageFilms.find((film) =>
       film.filmInfo.title === currentTitle);
 
-
-    this.#popup = new PopupView({
-      film: currentFilm,
-      commentsData: this.#commentsModel.comments,
-      onPopupClose: this.#onPopupClose
-    });
+    this.#renderPopup(currentFilm);
 
     this.#isPopup = true;
 
     this.#body.classList.add('hide-overflow');
-
-    render(this.#popup, this.#body);
   };
 
   #onPopupClose = () => {
@@ -242,5 +249,22 @@ export default class PagePresenter {
     this.#clearPage();
     this.#renderPage();
     this.#renderedFilmsCounter = FILM_QUANT;
+  };
+
+  #onControlClick = (film, control) => {
+    const key = Object.keys(ControlButton).find((btn) => ControlButton[btn] === control);
+    const parameter = FilterParameter[key];
+    const changedValue = !film.userDetails[parameter];
+    const userDetails = { ...film.userDetails, [parameter]: changedValue };
+    const updatedFilm = { ...film, userDetails };
+    this.#onViewAction(
+      UserAction.UPDATE_FILM,
+      UpdateType.MINOR,
+      updatedFilm
+    );
+
+    if (this.#isPopup === true) {
+      this.#renderPopup(updatedFilm);
+    }
   };
 }

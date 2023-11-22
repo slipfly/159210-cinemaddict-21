@@ -1,6 +1,6 @@
 import FilmCardView from '../view/film-card-view.js';
 import { remove, render, replace } from '../framework/render.js';
-import { UpdateType, UserAction, Mode } from '../const.js';
+import { Mode } from '../const.js';
 
 
 export default class FilmPresenter {
@@ -10,13 +10,15 @@ export default class FilmPresenter {
   #onDetailsClick = null;
   #onModeChange = null;
   #onFilmChange = null;
+  #onControlClick = null;
 
   #mode = Mode.DEFAULT;
 
-  constructor({ container, onDetailsClick, onFilmChange }) {
+  constructor({ container, onDetailsClick, onFilmChange, onControlClick }) {
     this.#filmContainerComponent = container;
     this.#onDetailsClick = onDetailsClick;
     this.#onFilmChange = onFilmChange;
+    this.#onControlClick = onControlClick;
   }
 
   init(film) {
@@ -26,9 +28,7 @@ export default class FilmPresenter {
     this.#filmCardComponent = new FilmCardView({
       film: this.#film,
       onDetailsClick: this.#onDetailsClick,
-      onWatchlistClick: this.#onWatchlistClick,
-      onWatchedClick: this.#onWatchedClick,
-      onFavoriteClick: this.#onFavoriteClick
+      onControlClick: this.#onControlClick
     });
 
     if (prevFilmCardComponent === null) {
@@ -54,35 +54,5 @@ export default class FilmPresenter {
 
   setAborting = () => {
 
-  };
-
-  #onWatchlistClick = () => {
-    const watchlist = !this.#film.userDetails.watchlist;
-    const userDetails = {...this.#film.userDetails, watchlist};
-    this.#onFilmChange(
-      UserAction.UPDATE_FILM,
-      UpdateType.MINOR,
-      { ...this.#film, userDetails}
-    );
-  };
-
-  #onWatchedClick = () => {
-    const alreadyWatched = !this.#film.userDetails.alreadyWatched;
-    const userDetails = { ...this.#film.userDetails, alreadyWatched };
-    this.#onFilmChange(
-      UserAction.UPDATE_FILM,
-      UpdateType.MINOR,
-      { ...this.#film, userDetails }
-    );
-  };
-
-  #onFavoriteClick = () => {
-    const favorite = !this.#film.userDetails.favorite;
-    const userDetails = { ...this.#film.userDetails, favorite };
-    this.#onFilmChange(
-      UserAction.UPDATE_FILM,
-      UpdateType.MINOR,
-      { ...this.#film, userDetails }
-    );
   };
 }
