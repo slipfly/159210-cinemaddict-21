@@ -2,7 +2,7 @@ import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { convertArrayToLine } from '../utils/popup.js';
 import { DATE_FORMATS, EMOJI_ATTRIBUTE, Emoji } from '../const.js';
 import dayjs from 'dayjs';
-import { humanizeTime } from '../utils/common.js';
+import { checkHowLongAgo, humanizeTime } from '../utils/common.js';
 import { remove } from '../framework/render.js';
 
 function createGenresList(array) {
@@ -20,7 +20,11 @@ function getComments(comments, commentsData) {
               <p class="film-details__comment-text">${commentInfo.comment}</p>
               <p class="film-details__comment-info">
                 <span class="film-details__comment-author">${commentInfo.author}</span>
-                <span class="film-details__comment-day">${dayjs(commentInfo.date).format(DATE_FORMATS.COMMENT)}</span>
+                <span class="film-details__comment-day">
+                ${checkHowLongAgo(commentInfo.date) === commentInfo.date ?
+        dayjs(commentInfo.date).format(DATE_FORMATS.COMMENT) :
+        checkHowLongAgo(commentInfo.date)}
+                </span>
                 <button class="film-details__comment-delete">Delete</button>
               </p>
             </div>
